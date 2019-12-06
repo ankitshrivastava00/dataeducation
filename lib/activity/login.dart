@@ -1,8 +1,10 @@
 import 'package:data_application/activity/home.dart';
 import 'package:data_application/activity/register.dart';
+import 'package:data_application/common/CustomProgressDialog.dart';
 import 'package:data_application/common/UserPreferences.dart';
 import 'package:data_application/service/auth.dart';
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/services.dart';
@@ -40,6 +42,7 @@ class _LoginState extends State<Login> {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
         token = prefs.getString(UserPreferences.USER_FCM);
+        userId = prefs.getString(UserPreferences.USER_ID);
     });
   }
   void _submitTask() async{
@@ -47,8 +50,12 @@ class _LoginState extends State<Login> {
 
     if (form.validate()) {
       form.save();
+      CustomProgressLoader.showLoader(context);
+
       dynamic result = await _auth.signInWithEmailAndPassword(_mobile, _password) ;
       if(result== null) {
+        CustomProgressLoader.cancelLoader(context);
+
         print("NOR DAATA ");
         Fluttertoast.showToast(
             msg:
@@ -61,6 +68,8 @@ class _LoginState extends State<Login> {
             fontSize: 16.0);
 
       }else{
+        CustomProgressLoader.cancelLoader(context);
+
         print("Logindg");
         print("asdfasdasdf "+result.uid);
         prefs = await SharedPreferences.getInstance();
@@ -70,7 +79,6 @@ class _LoginState extends State<Login> {
         Navigator.pushReplacement(context,
             new MaterialPageRoute(builder: (BuildContext context) => Home()));
       }
-
 
       /*try {
         String url =Constants.BASE_URL +Constants.LOGIN_URL;

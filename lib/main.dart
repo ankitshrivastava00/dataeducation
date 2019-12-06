@@ -156,22 +156,18 @@ class _MyAppState extends State<MyApp> {
 
 
         _showNotification(title,body);
-        print('on message $message');
-      },
-      onResume: (Map<String, dynamic> message) async {
-        print('on resume $message');
-        //  _navigateToItemDetail(message);
-/*  Navigator.of(context, rootNavigator: true).pop();
-        await Navigator.push(
-          context,
-          new MaterialPageRoute(
-            builder: (context) => new HomePage(0),
-          ),
-        );*/
+        print('onmessage $message');
+        Navigator.pushNamed(context, '/home');
 
       },
+      onResume: (Map<String, dynamic> message) async {
+        print('onresume $message');
+        Navigator.pushNamed(context, '/home');
+      },
       onLaunch: (Map<String, dynamic> message) async {
-        print('on launch $message');
+        print('onlaunch $message');
+        Navigator.pushNamed(context, '/home');
+
         //      _navigateToItemDetail(message);
       },
     );

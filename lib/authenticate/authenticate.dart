@@ -10,7 +10,7 @@ class _AuthenticateState extends  State<Authenticate>{
   Widget build(BuildContext context) {
     // TODO: implement build
     return Container(
-      child:  Text("Authenticate "),
+      child:  Text("Authenticate"),
     );
   }
 

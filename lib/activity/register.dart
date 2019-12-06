@@ -1,4 +1,5 @@
 import 'package:data_application/activity/login.dart';
+import 'package:data_application/common/CustomProgressDialog.dart';
 import 'package:data_application/common/UserPreferences.dart';
 import 'package:data_application/service/auth.dart';
 import 'package:flutter/material.dart';
@@ -84,10 +85,13 @@ class _RegistrationState extends State<Registration> {
   }
   void _performLogin() async {
 
+    CustomProgressLoader.showLoader(context);
 
-    dynamic result = await _auth.registerWithEmailAndPassword(_email, _password) ;
+    dynamic result = await _auth.registerWithEmailAndPassword(_first_name+" "+_last_name,_email, _password,_mobile,address1,address2,_city,_state,country,pincode,_selectedFruit) ;
     if(result== null) {
       print("NOR DAATA ");
+      CustomProgressLoader.cancelLoader(context);
+
       Fluttertoast.showToast(
           msg:
           "Please use Diffrent email ID ,User already registered",
@@ -99,6 +103,8 @@ class _RegistrationState extends State<Registration> {
           fontSize: 16.0);
 
     }else{
+      CustomProgressLoader.cancelLoader(context);
+
       print("Logindg");
       print("asdfasdasdf "+result.uid);
       Fluttertoast.showToast(
