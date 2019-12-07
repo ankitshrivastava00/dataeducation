@@ -1,6 +1,11 @@
+import 'dart:convert';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:data_application/activity/login.dart';
+import 'package:data_application/common/Constants.dart';
 import 'package:data_application/common/CustomProgressDialog.dart';
 import 'package:data_application/common/UserPreferences.dart';
+import 'package:data_application/model/institute.dart';
 import 'package:data_application/service/auth.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -21,10 +26,12 @@ class _RegistrationState extends State<Registration> {
   String userId;
   String reply;
   TextEditingController passwordMatch = new TextEditingController();
-  List _fruits = ["RGPV","UNIVERSITY OF LAW","DEHLI UNIVERSE","DAVV"];
+  List _fruits = ["RKDF"];
+  List<Institute> list = List();
 
-  List<DropdownMenuItem<String>> _dropDownMenuItems;
-  String _selectedFruit;
+  var isLoading = false;
+  List<DropdownMenuItem<Institute>> _dropDownMenuItems;
+  Institute _selectedFruit;
 
   SharedPreferences prefs;
 
@@ -63,31 +70,71 @@ class _RegistrationState extends State<Registration> {
   void initState() {
     // TODO: implement initState
     super.initState();
-    _dropDownMenuItems = buildAndGetDropDownMenuItems(_fruits);
-
-    _selectedFruit = _dropDownMenuItems[0].value;
-
-
+    getData();
   }
 
-  List<DropdownMenuItem<String>> buildAndGetDropDownMenuItems(List fruits) {
-    List<DropdownMenuItem<String>> items = new List();
-    for (String fruit in fruits) {
-      items.add(new DropdownMenuItem(value: fruit, child: new Text(fruit)));
+  List<DropdownMenuItem<Institute>> buildAndGetDropDownMenuItems(List institute) {
+    List<DropdownMenuItem<Institute>> items = new List();
+    for (Institute i in institute) {
+      items.add(
+        DropdownMenuItem(
+          value: i,
+          child: Text(i.name),
+        ),
+      );
     }
+
     return items;
   }
 
-  void changedDropDownItem(String selectedFruit) {
+  void changedDropDownItem(Institute selectedFruit) {
     setState(() {
       _selectedFruit = selectedFruit;
     });
+  }
+  void getData() {
+    setState(() {
+      isLoading = true;
+    });
+    //setState(() {
+      Firestore.instance
+          .collection("insitute")
+          .getDocuments()
+          .then((QuerySnapshot snapshot) {
+
+//            var data1 =snapshot.documents.forEach(f)=>;
+  //          data1[0].[''];
+        snapshot.documents.forEach((f) =>
+           list.add( Institute(f.data['name'], f.data['name'],f.data['name'],f.data['name'],f.data['name'],f.data['name'] )));
+
+
+
+            _dropDownMenuItems = buildAndGetDropDownMenuItems(list);
+
+            _selectedFruit = _dropDownMenuItems[0].value;
+
+        setState(() {
+          isLoading = false;
+
+        });
+       // snapshot.documents.forEach((f) =>_fruits.add('${f.data['name']}'));
+
+
+      });
+    /*  if(isLoading == false){
+        _dropDownMenuItems = buildAndGetDropDownMenuItems(_fruits);
+
+        _selectedFruit = _dropDownMenuItems[0].value;
+
+      }*/
+     //    });
+
   }
   void _performLogin() async {
 
     CustomProgressLoader.showLoader(context);
 
-    dynamic result = await _auth.registerWithEmailAndPassword(_first_name+" "+_last_name,_email, _password,_mobile,address1,address2,_city,_state,country,pincode,_selectedFruit) ;
+    dynamic result = await _auth.registerWithEmailAndPassword(_first_name+" "+_last_name,_email, _password,_mobile,address1,address2,_city,_state,country,pincode,_selectedFruit.name) ;
     if(result== null) {
       print("NOR DAATA ");
       CustomProgressLoader.cancelLoader(context);
@@ -136,12 +183,11 @@ class _RegistrationState extends State<Registration> {
   Future<bool> _onWillPop() {
     Navigator.pushReplacement(context,
         new MaterialPageRoute(builder: (BuildContext context) => Login()));
-
-
   }
 
   @override
   Widget build(BuildContext context) {
+    Constants.applicationContext =context;
     return  new WillPopScope(
         onWillPop: _onWillPop,
         child:new  Scaffold(
@@ -157,7 +203,11 @@ class _RegistrationState extends State<Registration> {
         title: Text('Registration'),
         backgroundColor: Colors.green,
       ),
-      body: Padding(
+      body: isLoading
+          ? Center(
+        child: CircularProgressIndicator(),
+      )
+          :  Padding(
         padding: const EdgeInsets.all(16.0),
         child: Form(
           key: formKey,

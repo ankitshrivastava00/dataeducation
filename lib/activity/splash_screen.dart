@@ -1,6 +1,7 @@
 library splashscreen;
 import 'dart:core';
 import 'dart:async';
+import 'package:data_application/common/Constants.dart';
 import 'package:flutter/material.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -65,6 +66,7 @@ class _SplashScreenState extends State<SplashScreen> {
   }
   @override
   Widget build(BuildContext context) {
+    Constants.applicationContext =context;
     return Scaffold(
       body: new InkWell(
         onTap: widget.onClick,

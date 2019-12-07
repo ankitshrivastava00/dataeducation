@@ -1,4 +1,5 @@
 import 'package:data_application/activity/login.dart';
+import 'package:data_application/common/Constants.dart';
 import 'package:data_application/common/UserPreferences.dart';
 import 'package:data_application/service/auth.dart';
 import 'package:flutter/material.dart';
@@ -33,7 +34,7 @@ class _HomeState extends State<Home> {
   }
   @override
   Widget build(BuildContext context) {
-
+    Constants.applicationContext =context;
     return new Scaffold(
       appBar: AppBar(
      actions: <Widget>[

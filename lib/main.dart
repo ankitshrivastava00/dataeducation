@@ -1,8 +1,8 @@
-import 'package:data_application/model/user.dart';
+import 'package:data_application/authenticate/authenticate.dart';
+import 'package:data_application/common/Constants.dart';
 import 'package:flutter/material.dart';
 import 'dart:io';
 import 'package:data_application/common/UserPreferences.dart';
-import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -25,16 +25,16 @@ void main() async {
     home: new MyApp(),
     debugShowCheckedModeBanner: false,
 
-      theme: ThemeData(
-        primaryColor: Colors.green,
-        accentColor: Colors.green,
-        primaryColorBrightness: Brightness.dark,
-      ),
+    theme: ThemeData(
+      primaryColor: Colors.green,
+      accentColor: Colors.green,
+      primaryColorBrightness: Brightness.dark,
+    ),
 
     routes: <String, WidgetBuilder>{
       '/login': (BuildContext context) => new Login(),
       '/home': (BuildContext context) => new Home()
-  },
+    },
   )
   );
 }
@@ -45,7 +45,7 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  String login_status = 'FALSE',rout='/login';
+  String login_status = 'FALSE',rout='/login',message=null;
   SharedPreferences prefs;
   FirebaseMessaging _firebaseMessaging = FirebaseMessaging();
   @override
@@ -80,7 +80,7 @@ class _MyAppState extends State<MyApp> {
         androidPlatformChannelSpecifics, iOSPlatformChannelSpecifics);
     await flutterLocalNotificationsPlugin.show(
         0, '${title}', '${message}', platformChannelSpecifics,
-        payload: 'item x');
+        payload: message);
   }
 
   getSharedPreferences() async {
@@ -104,6 +104,13 @@ class _MyAppState extends State<MyApp> {
     if (payload != null) {
       debugPrint('notification payload: ' + payload);
     }
+
+     Navigator.push(
+      Constants.applicationContext,
+      new MaterialPageRoute(
+        builder: (context) => new Authenticate(payload),
+      ),
+    );
   }
 
   Future onDidRecieveLocalNotification(
@@ -119,11 +126,11 @@ class _MyAppState extends State<MyApp> {
             isDefaultAction: true,
             child: new Text('Ok'),
             onPressed: () async {
- Navigator.of(context, rootNavigator: true).pop();
+              Navigator.of(context, rootNavigator: true).pop();
               await Navigator.push(
-                context,
+                Constants.applicationContext,
                 new MaterialPageRoute(
-                  builder: (context) => new Home(),
+                  builder: (context) => new Authenticate(payload),
                 ),
               );
 
@@ -150,27 +157,18 @@ class _MyAppState extends State<MyApp> {
         var notification = message['notification'];
         String title = notification['title'];
         String body = notification['body'];
- /* for(var data in message){
-
-      }*/
-
-
         _showNotification(title,body);
-        print('onmessage $message');
-        Navigator.pushNamed(context, '/home');
 
       },
       onResume: (Map<String, dynamic> message) async {
-        print('onresume $message');
-        Navigator.pushNamed(context, '/home');
+
       },
       onLaunch: (Map<String, dynamic> message) async {
-        print('onlaunch $message');
-        Navigator.pushNamed(context, '/home');
-
-        //      _navigateToItemDetail(message);
       },
+
     );
+
+
   }
   @override
   void dispose() {
@@ -189,35 +187,18 @@ class _MyAppState extends State<MyApp> {
     });
   }
 
-
   @override
   Widget build(BuildContext context) {
+    Constants.applicationContext =context;
+    return Center(child:  new SplashScreen(
+      seconds: 3,
+      navigateAfterSeconds: rout,
+      imageBackground: new AssetImage("images/splash.jpg"),
+      backgroundColor: Colors.white,
+      photoSize: 100.0,
 
-    /*final user = Provider.of<User>(context);
-    if(user == null){
-      return Center(child:  new SplashScreen(
-        seconds: 3,
-        navigateAfterSeconds: '/login',
-        imageBackground: new AssetImage("images/splash.jpg"),
-        backgroundColor: Colors.white,
-        photoSize: 100.0,
-
-      ),
-        //  loaderColor: Colors.red,
-      );
-    }else{*/
-      return Center(child:  new SplashScreen(
-        seconds: 3,
-        navigateAfterSeconds: rout,
-        imageBackground: new AssetImage("images/splash.jpg"),
-        backgroundColor: Colors.white,
-        photoSize: 100.0,
-
-      ),
-        //  loaderColor: Colors.red,
-      );
-    }
-
- // }
+    ),
+      //  loaderColor: Colors.red,
+    );
+  }
 }
-

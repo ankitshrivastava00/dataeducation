@@ -1,5 +1,6 @@
 import 'package:data_application/activity/home.dart';
 import 'package:data_application/activity/register.dart';
+import 'package:data_application/common/Constants.dart';
 import 'package:data_application/common/CustomProgressDialog.dart';
 import 'package:data_application/common/UserPreferences.dart';
 import 'package:data_application/service/auth.dart';
@@ -100,7 +101,7 @@ class _LoginState extends State<Login> {
 
   @override
   Widget build(BuildContext context) {
-
+    Constants.applicationContext =context;
     final createLable = FlatButton(
       child: Text(
         'create account',
