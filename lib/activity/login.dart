@@ -5,7 +5,6 @@ import 'package:data_application/common/CustomProgressDialog.dart';
 import 'package:data_application/common/UserPreferences.dart';
 import 'package:data_application/service/auth.dart';
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/services.dart';
@@ -57,10 +56,9 @@ class _LoginState extends State<Login> {
       if(result== null) {
         CustomProgressLoader.cancelLoader(context);
 
-        print("NOR DAATA ");
         Fluttertoast.showToast(
             msg:
-            "Incorrect Email And Password",
+            Constants.INCORRECT_PASSWORD,
             toastLength: Toast.LENGTH_SHORT,
             gravity: ToastGravity.BOTTOM,
             timeInSecForIos: 1,
@@ -71,8 +69,7 @@ class _LoginState extends State<Login> {
       }else{
         CustomProgressLoader.cancelLoader(context);
 
-        print("Logindg");
-        print("asdfasdasdf "+result.uid);
+
         prefs = await SharedPreferences.getInstance();
         prefs.setString(UserPreferences.USER_ID, result.uid);
         prefs.setString(UserPreferences.USER_EMAIL, _mobile);
@@ -125,7 +122,7 @@ class _LoginState extends State<Login> {
      //   }),
         automaticallyImplyLeading: false,
 
-        title: Text('Login'),
+        title: Text(Constants.LOGIN_PAGE),
         backgroundColor: Colors.green,
       ),
       body: Padding(
@@ -136,20 +133,20 @@ class _LoginState extends State<Login> {
             child: new Column(
               children: <Widget>[
                    TextFormField(
-                  decoration: InputDecoration(labelText: 'EMAIL *'),
+                  decoration: InputDecoration(labelText: Constants.EMAIL_HINT),
                   validator: (valueMobile) =>
               //    valueMobile.length == 0 ? 'Please Enter Email' : null,
-                     !valueMobile.contains('@') ? 'Not a valid email.' : null,
+                     !valueMobile.contains('@') ? Constants.EMAIL_VALIDATION : null,
                   onSaved: (valueMobile) => _mobile = valueMobile,
                   keyboardType: TextInputType.emailAddress,
                 ),
                 TextFormField(
 
-                  decoration: InputDecoration(labelText: 'PASSWORD *'
+                  decoration: InputDecoration(labelText: Constants.PASSWORD_HINT
                  , // Here is key idea
                    ),
                   validator: (valuePassword) =>
-                  valuePassword.length < 6 ? 'Password too short.' : null,
+                  valuePassword.length < 6 ? Constants.PASSWORD_VALIDATION : null,
                   onSaved: (valuePassword) => _password = valuePassword,
                   keyboardType: TextInputType.text,
                   obscureText: true,
@@ -163,7 +160,7 @@ class _LoginState extends State<Login> {
                       ),
                       onPressed: _submitTask,
                       textColor: Colors.white,
-                      child: new Text("LOGIN"),
+                      child: new Text(Constants.LOGIN_BUTTON),
                       color: Colors.green,
                       padding: new EdgeInsets.all(20.0),
                     ),

@@ -7,8 +7,10 @@ import 'package:data_application/common/CustomProgressDialog.dart';
 import 'package:data_application/common/UserPreferences.dart';
 import 'package:data_application/model/institute.dart';
 import 'package:data_application/service/auth.dart';
+import 'package:data_application/service/databaseService.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:async';
 
@@ -26,7 +28,6 @@ class _RegistrationState extends State<Registration> {
   String userId;
   String reply;
   TextEditingController passwordMatch = new TextEditingController();
-  List _fruits = ["RKDF"];
   List<Institute> list = List();
 
   var isLoading = false;
@@ -48,6 +49,7 @@ class _RegistrationState extends State<Registration> {
       _state,
       _lat,
       _long,
+      fcm_token,
       _IEMI,
   pincode,
       _deviceId;
@@ -66,11 +68,19 @@ class _RegistrationState extends State<Registration> {
       _performLogin();
     }
   }
+  getSharedPreferences() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      fcm_token = prefs.getString(UserPreferences.USER_FCM);
+      userId = prefs.getString(UserPreferences.USER_ID);
+    });
+  }
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
     getData();
+    getSharedPreferences();
   }
 
   List<DropdownMenuItem<Institute>> buildAndGetDropDownMenuItems(List institute) {
@@ -93,21 +103,17 @@ class _RegistrationState extends State<Registration> {
     });
   }
   void getData() {
+    try{
     setState(() {
       isLoading = true;
     });
-    //setState(() {
-      Firestore.instance
+
+    Firestore.instance
           .collection("insitute")
           .getDocuments()
           .then((QuerySnapshot snapshot) {
-
-//            var data1 =snapshot.documents.forEach(f)=>;
-  //          data1[0].[''];
         snapshot.documents.forEach((f) =>
-           list.add( Institute(f.data['name'], f.data['name'],f.data['name'],f.data['name'],f.data['name'],f.data['name'] )));
-
-
+           list.add( Institute(id: f.data['id'],name: f.data['name'],city: f.data['city'],state:f.data['state'],country:f.data['country'],pincode:f.data['pincode'] ,address:f.data['address'] )));
 
             _dropDownMenuItems = buildAndGetDropDownMenuItems(list);
 
@@ -117,31 +123,25 @@ class _RegistrationState extends State<Registration> {
           isLoading = false;
 
         });
-       // snapshot.documents.forEach((f) =>_fruits.add('${f.data['name']}'));
-
-
       });
-    /*  if(isLoading == false){
-        _dropDownMenuItems = buildAndGetDropDownMenuItems(_fruits);
 
-        _selectedFruit = _dropDownMenuItems[0].value;
-
-      }*/
-     //    });
-
+    }catch(e){
+      print(e.toString());
+    }
   }
-  void _performLogin() async {
 
+  void _performLogin() async {
+try{
     CustomProgressLoader.showLoader(context);
 
-    dynamic result = await _auth.registerWithEmailAndPassword(_first_name+" "+_last_name,_email, _password,_mobile,address1,address2,_city,_state,country,pincode,_selectedFruit.name) ;
+    dynamic result = await _auth.registerWithEmailAndPassword(_first_name , _last_name,_email, _password,_mobile,address1,address2,_city,_state,country,pincode,_selectedFruit.name,fcm_token) ;
     if(result== null) {
       print("NOR DAATA ");
       CustomProgressLoader.cancelLoader(context);
 
       Fluttertoast.showToast(
           msg:
-          "Please use Diffrent email ID ,User already registered",
+          Constants.USER_ALREADY,
           toastLength: Toast.LENGTH_SHORT,
           gravity: ToastGravity.BOTTOM,
           timeInSecForIos: 1,
@@ -152,11 +152,9 @@ class _RegistrationState extends State<Registration> {
     }else{
       CustomProgressLoader.cancelLoader(context);
 
-      print("Logindg");
-      print("asdfasdasdf "+result.uid);
       Fluttertoast.showToast(
           msg:
-          "User registered",
+          Constants.USER_REGISTER,
           toastLength: Toast.LENGTH_SHORT,
           gravity: ToastGravity.BOTTOM,
           timeInSecForIos: 1,
@@ -165,7 +163,7 @@ class _RegistrationState extends State<Registration> {
           fontSize: 16.0);
       prefs = await SharedPreferences.getInstance();
       prefs.setString(UserPreferences.USER_ID, result.uid);
-      prefs.setString(UserPreferences.USER_EMAIL, _mobile);
+      prefs.setString(UserPreferences.USER_EMAIL, _email);
       prefs.setString(UserPreferences.LOGIN_STATUS, "TRUE");
       Navigator.pushReplacement(context,
           new MaterialPageRoute(builder: (BuildContext context) => Home()));
@@ -178,7 +176,11 @@ class _RegistrationState extends State<Registration> {
       print("sign Succes");
       print("asdfasdf " + result.uid);
     }*/
-  }
+
+}catch(e){
+print(e.toString());
+}
+}
 
   Future<bool> _onWillPop() {
     Navigator.pushReplacement(context,
@@ -200,7 +202,7 @@ class _RegistrationState extends State<Registration> {
         }),
         automaticallyImplyLeading: false,
 
-        title: Text('Registration'),
+        title: Text(Constants.REGISTRATION_PAGE),
         backgroundColor: Colors.green,
       ),
       body: isLoading
@@ -223,12 +225,13 @@ class _RegistrationState extends State<Registration> {
                 new Expanded(
                   child:Container(
                   child: new TextFormField(
-                    decoration: InputDecoration(labelText: 'First Name *'),
+                    decoration: InputDecoration(labelText: Constants.FIRST_NAME_HINT),
                     validator: (valueName) =>
-                        valueName.length <= 0 ? 'Enter Your First Name' : null,
+                        valueName.length <= 0 ? Constants.FIRST_NAME_VALIDATION : null,
                     //   !val.contains('@') ? 'Not a valid email.' : null,
                     onSaved: (valueName) => _first_name = valueName,
                     keyboardType: TextInputType.text,
+
                   ),
                     margin: EdgeInsets.only(right:8.0),
                 ),
@@ -238,10 +241,10 @@ class _RegistrationState extends State<Registration> {
                   child:Container(
                     child: TextFormField(
 
-                    decoration: InputDecoration(labelText: 'Last Name *'),
+                    decoration: InputDecoration(labelText: Constants.LAST_NAME_HINT),
 
                     validator: (valueName) =>
-                        valueName.length <= 0 ? 'Enter Your Last Name' : null,
+                        valueName.length <= 0 ? Constants.LAST_NAME_VALIDATION : null,
                     //   !val.contains('@') ? 'Not a valid email.' : null,
                     onSaved: (valueName) => _last_name = valueName,
                     keyboardType: TextInputType.text,
@@ -252,17 +255,17 @@ class _RegistrationState extends State<Registration> {
               ]),
 
               TextFormField(
-                decoration: InputDecoration(labelText: 'Email *'),
+                decoration: InputDecoration(labelText: Constants.EMAIL_HINT),
                 validator: (valueEmail) =>
                     //valueEmail.length <= 0 ? 'Enter Your Email' : null,
-                    !valueEmail.contains('@') ? 'Not a valid email.' : null,
+                    !valueEmail.contains('@') ? Constants.EMAIL_VALIDATION : null,
                 onSaved: (valueEmail) => _email = valueEmail,
                 keyboardType: TextInputType.emailAddress,
               ),
               TextFormField(
-                decoration: InputDecoration(labelText: 'Password *'),
+                decoration: InputDecoration(labelText: Constants.PASSWORD_HINT),
                 validator: (valuePassword) =>
-                    valuePassword.length < 6 ? 'Password too short.' : null,
+                    valuePassword.length < 6 ? Constants.PASSWORD_VALIDATION : null,
                 onSaved: (valuePassword) => _password = valuePassword,
                 keyboardType: TextInputType.text,
                 obscureText: true,
@@ -270,27 +273,27 @@ class _RegistrationState extends State<Registration> {
 
               ),
               TextFormField(
-                decoration: InputDecoration(labelText: 'Confirm Password *'),
+                decoration: InputDecoration(labelText: Constants.CONFIRM_PASSWORD_HINT),
                 validator: (valueConfirnmPassword) =>
-                valueConfirnmPassword.trim() !=   passwordMatch.text.toString().trim()?'Password not matched' :null,
+                valueConfirnmPassword.trim() !=   passwordMatch.text.toString().trim()? Constants.CONFIRM_PASSWORD_VALIDATION :null,
                 onSaved: (valueConfirnmPassword) => _confirnm_password = valueConfirnmPassword,
                 keyboardType: TextInputType.text,
                 obscureText: true,
               ),
 
               TextFormField(
-                decoration: InputDecoration(labelText: 'Mobile *'),
+                decoration: InputDecoration(labelText: Constants.MOBILE_HINT),
                 validator: (valueMobile) =>
-                    valueMobile.length < 8 ? 'Enter Correct Number' : null,
+                    valueMobile.length < 8 ? Constants.MOBILE_VALIDATION : null,
                 //   !val.contains('@') ? 'Not a valid email.' : null,
                 onSaved: (valueMobile) => _mobile = valueMobile,
                 keyboardType: TextInputType.phone,
                 maxLength: 15,
               ),
   TextFormField(
-                decoration: InputDecoration(labelText: 'Address 1 *'),
+                decoration: InputDecoration(labelText: Constants.ADDRESS1_HINT),
                 validator: (valueAddress) =>
-                valueAddress.length <= 0 ? 'Enter Address1' : null,
+                valueAddress.length <= 0 ? Constants.ADDRESS1_VALIDATION : null,
                 //   !val.contains('@') ? 'Not a valid email.' : null,
                 onSaved: (valueAddress) => address1 = valueAddress,
                 keyboardType: TextInputType.text,
@@ -298,9 +301,9 @@ class _RegistrationState extends State<Registration> {
 
 
   TextFormField(
-                decoration: InputDecoration(labelText: 'Address 2 *'),
+                decoration: InputDecoration(labelText: Constants.ADDRESS2_HINT),
                 validator: (valueAddress2) =>
-                valueAddress2.length <= 0 ? 'Enter Address2' : null,
+                valueAddress2.length <= 0 ? Constants.ADDRESS2_VALIDATION : null,
                 //   !val.contains('@') ? 'Not a valid email.' : null,
                 onSaved: (valueAddress2) => address2 = valueAddress2,
                 keyboardType: TextInputType.text,
@@ -308,9 +311,9 @@ class _RegistrationState extends State<Registration> {
 
 
   TextFormField(
-                decoration: InputDecoration(labelText: 'City *'),
+                decoration: InputDecoration(labelText: Constants.CITY_HINT),
                 validator: (valuecity) =>
-                valuecity.length <= 0 ? 'Enter City' : null,
+                valuecity.length <= 0 ? Constants.CITY_VALIDATION : null,
                 //   !val.contains('@') ? 'Not a valid email.' : null,
                 onSaved: (valuecity) => _city = valuecity,
                 keyboardType: TextInputType.text,
@@ -318,9 +321,9 @@ class _RegistrationState extends State<Registration> {
 
 
   TextFormField(
-                decoration: InputDecoration(labelText: 'State *'),
+                decoration: InputDecoration(labelText: Constants.STATE_HINT),
                 validator: (valueState) =>
-                valueState.length <= 0 ? 'Enter State' : null,
+                valueState.length <= 0 ? Constants.STATE_VALIDATION : null,
                 //   !val.contains('@') ? 'Not a valid email.' : null,
                 onSaved: (valueState) => _state = valueState,
                 keyboardType: TextInputType.text,
@@ -328,9 +331,9 @@ class _RegistrationState extends State<Registration> {
 
 
   TextFormField(
-                decoration: InputDecoration(labelText: 'Country *'),
+                decoration: InputDecoration(labelText: Constants.COUNTRY_HINT),
                 validator: (valueCountry) =>
-                valueCountry.length <= 0 ? 'Enter Country' : null,
+                valueCountry.length <= 0 ? Constants.COUNTRY_VALIDATION : null,
                 //   !val.contains('@') ? 'Not a valid email.' : null,
                 onSaved: (valueCountry) => country = valueCountry,
                 keyboardType: TextInputType.text,
@@ -338,9 +341,9 @@ class _RegistrationState extends State<Registration> {
 
 
   TextFormField(
-                decoration: InputDecoration(labelText: 'Pincode *'),
+                decoration: InputDecoration(labelText: Constants.PINCODE_HINT),
                 validator: (valuePincode) =>
-                valuePincode.length < 5 ? 'Enter Correct Pincode' : null,
+                valuePincode.length < 5 ? Constants.PINCODE_VALIDATION : null,
                 //   !val.contains('@') ? 'Not a valid email.' : null,
                 onSaved: (valuePincode) => pincode = valuePincode,
                 keyboardType: TextInputType.number,
@@ -367,7 +370,7 @@ class _RegistrationState extends State<Registration> {
                     child: new RaisedButton(
                       onPressed: _submit,
                       textColor: Colors.white,
-                      child: new Text("REGISTER"),
+                      child: new Text(Constants.REGISTER_BUTTON_HINT),
                       color: Colors.green,
                       padding: new EdgeInsets.all(15.0),
                     ),

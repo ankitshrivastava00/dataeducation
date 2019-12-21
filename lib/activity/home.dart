@@ -1,4 +1,5 @@
 import 'package:data_application/activity/login.dart';
+import 'package:data_application/activity/notification_list.dart';
 import 'package:data_application/common/Constants.dart';
 import 'package:data_application/common/UserPreferences.dart';
 import 'package:data_application/service/auth.dart';
@@ -38,33 +39,33 @@ class _HomeState extends State<Home> {
     return new Scaffold(
       appBar: AppBar(
      actions: <Widget>[
-       FlatButton.icon(onPressed: () async{
-         await auth.signOut();
-         prefs = await SharedPreferences.getInstance();
-         prefs.setString(UserPreferences.LOGIN_STATUS, "FALSE");
-         Navigator.pushReplacement(context,
-             new MaterialPageRoute(builder: (BuildContext context) => Login()));
+       IconButton(
+         icon: Icon(Icons.notification_important),
+         onPressed: () {
+           Navigator.push(context,
+               new MaterialPageRoute(builder: (BuildContext context) => NotificationList()));         },
+       ),
+       IconButton(
+         icon: Icon(Icons.power_settings_new),
+         onPressed: () async{
+           await auth.signOut();
+           prefs = await SharedPreferences.getInstance();
+           prefs.setString(UserPreferences.LOGIN_STATUS, "FALSE");
+           Navigator.pushReplacement(context,
+               new MaterialPageRoute(builder: (BuildContext context) => Login()));         },
+       )
 
-       }, icon: Icon(Icons.power_settings_new), label:Text('Logout'))
      ],
         automaticallyImplyLeading: false,
-
-        title: Text('Home'),
+        title: Text(Constants.APPLICATION_NAME),
+        centerTitle: true,
         backgroundColor: Colors.green,
       ),
       body:
-
          Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: <Widget>[
-            Text('Email : ${email}'),
-            SizedBox(height: 15.0),
-            Text('Id : ${id}'),
-            SizedBox(height: 15.0),
-            Text('Notification Token : ${token}'),
-          ],
-        )
+        child: new Center(
+            child:new Text('Welcome ${Constants.APPLICATION_NAME}')),
       ),
     );
   }
